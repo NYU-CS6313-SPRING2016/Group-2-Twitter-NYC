@@ -1,0 +1,62 @@
+
+* {   
+    font: 15px "Lucida Grande", "Open Sans";
+}
+a {
+    color: #00B7FF;
+}
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.alert-box.tweet {
+    border: 0px solid #3498DB;
+    border-radius: 5px;
+    color: #fff;
+    background-color: rgba(52, 152, 219, 0.2); 
+    position: absolute;
+    top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+}
+
+.tweets {
+    border: 0px solid #3498DB;
+    border-radius: 5px;
+    color: #fff;
+    background-color: rgba(52, 152, 219, 0.2); 
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    right: 10px;
+    width: 300px;
+    overflow: hidden;
+}
+#tweets {
+  margin: 3;
+  height: 90%;
+  overflow-y: auto;
+  word-wrap: break-word;
+}
+li {
+  /*height: 27px;*/
+  /*line-height: 27px;*/
+  width: inherit;
+  color: white;
+  list-style-type: none;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: silver 2px dotted;
+}
+b {
+    font-size: 18px;
+}
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+}
