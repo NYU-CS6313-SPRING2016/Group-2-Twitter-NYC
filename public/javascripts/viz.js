@@ -10,7 +10,25 @@ var map = new mapboxgl.Map({
     zoom: 10.7
 
 });
+var host = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
 
+d3.select("#refresh").on("click", function() {
+    showAllPoints();
+    hideTweets();
+    d3.select("#search").property('value', "");
+})
+map.on('click', function (data) {
+    data = data.lngLat;
+    var url = '/api/coordinates/' + data.lat + '/' + data.lng;
+    console.log(url);
+
+    d3.json(url, function (data) {
+        // console.log(data);
+        showFull(data);
+    });
+    //   var e = data && data.originalEvent;
+    //   console.log('got click ' + (e ? 'button = ' + e.button : ''));
+});
 
 map.on('style.load', function () {
     init();
@@ -83,33 +101,75 @@ function showAllPoints() {
     map.setLayoutProperty("marker_all", 'visibility', 'visible');
 }
 
-function fetchFilteredPoints(key) {
-    console.log("fetching data");
-    $.getJSON("/api/text" + key, function (data) {
-        console.log("fetched");
-        marker_search.features = data;
-        showFilteredPoints();
-    })
+
+function showFilteredPoints(data) {
+    marker_search.features = data;
+    emptyData("marker_temp");
+    refreshData("marker_search");
+    map.setLayoutProperty("marker_all", 'visibility', 'none');
+    map.setLayoutProperty("marker_search", 'visibility', 'visible');
 }
 
-
-function showTweets(tweets, key, partial) {
-    tweets = tweets.map(function (d) {
-        var index = d.indexOf(key)
-        if (index < 0 ) return "";
-        else {
-            if (partial) d = d.substring(index, index + 20);
-            return d.replace(new RegExp(key, 'i'), '<u><b>$&</b></u>');
-        } 
-    }).filter(function(d) {
+d3.select("#search").on("keyup", function () {
+    d3.select("#tweets").html("");
+    var key = d3.select("#search").property('value');
+    if (key == "") {
+        showAllPoints();
+        return;
+    }
+    var keyCode = d3.event.keyCode;
+    if (keyCode == 13) {
+        fetchPointsByText(key, function (data) {
+            showFull(data);
+        })
+    } else {
+        showAutocomplete(key);
+    }
+})
+function filterUnqualified(data, key) {
+    return data.map(function (d) {
+        var index = d.properties.text.indexOf(key)
+        if (index < 0) return "";
+        else return d;
+    }).filter(function (d) {
         return d != "";
     })
-    var div = d3.select("#tweets").selectAll("li").data(tweets);
-    div.enter().append("li").html(function(d) {return d});
-    div.exit().remove();
+}
+function filterUnqualifiedForTweet(data, key) {
+    return data.map(function (d) {
+        var index = d.indexOf(key)
+        if (index < 0) return "";
+        else return d;
+    }).filter(function (d) {
+        return d != "";
+    })
+}
+function showAutocomplete(key) {
+    d3.json(host + '/api/text/autocomplete/' + key, function (tweets) {
+        tweets = filterUnqualifiedForTweet(tweets, key);
+        // if (tweets.length > 0) {
+        console.log(tweets);
+        tweets = tweets.map(function (d) {
+            var index = d.indexOf(key)
+            d = d.substring(index, index + 20);
+            return d.replace(new RegExp(key, 'i'), '<u><b>$&</b></u>');
+        })
+        // }
+        showTweets(tweets);
+    })
+}
+function showFull(data) {
+    if (data.length > 0) {
+        var tweets = data.map(function (d) {
+            return d.properties.text;
+        })
+        showTweets(tweets);
+        showFilteredPoints(data);
+    }
 }
 
 
+// For point animation
 var animation = [[1, 1], [3, 1], [20, 0.5], [200, 0]];
 var id = 0;
 var start_time;
