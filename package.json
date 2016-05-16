@@ -1,0 +1,14 @@
+{
+    "name":"simple_chat",
+    "version":"1.0.0",
+    "private":"true",
+    "dependencies": {
+        "socket.io":"1.4.5",
+        "express":"4.13.4",
+		"mongoose":"4.4.14",
+        "mongoose-ttl":"0.0.3",
+		"twitter":"1.2.5",
+        "turf": "^2.0.2",
+		"porter-stemmer":"0.9.1"
+    }
+}

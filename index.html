@@ -1,0 +1,233 @@
+<html>
+
+<head>
+    <title>Twitts Viz with socket.io and node.js</title>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.18.0/mapbox-gl.css' rel='stylesheet' />
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/func.js"></script>
+
+    <style>
+        #tweetsbox {
+            position: absolute;
+            top: 50px;
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #FFF;
+            height: 100px;
+            width: 40%;
+            left: 20%;
+        }
+        
+        #map {
+            position: absolute;
+            top: 50px;
+            bottom: 0;
+            width: 75%;
+        }
+        
+        button.btn-default:focus {
+            border: none;
+            color: #FFF;
+            background-color: #5592aa;
+            outline: 0;
+        }
+        
+        button.btn-default:hover {
+            border: none;
+            color: #FFF;
+            background-color: #5592aa;
+        }
+        
+        button.btn-default {
+            background-color: rgba(52, 152, 219, 0);
+            border: none;
+            color: #5592aa;
+            width: 100px;
+        }
+        
+        #hash:active {
+            border: none;
+            color: #FFF;
+            background-color: #5592aa;
+            outline: 0;
+        }
+        
+        #mention:active {
+            border: none;
+            color: #FFF;
+            background-color: #5592aa;
+            outline: 0;
+        }
+        
+        #refresh {
+            color: #FFF;
+            margin: 20px;
+        }
+        
+        ul {
+            padding-left: 0;
+            margin: 5px;
+        }
+        
+        .navbar-default {
+            background-color: #5592aa;
+            color: #FFF;
+            margin-bottom: 0;
+        }
+        
+        .progress-label {
+            float: left;
+            color: black;
+            font-weight: bold;
+        }
+        
+        .progress-num {
+            float: right;
+            color: black;
+            font-weight: bold;
+        }
+		.progress {
+			cursor:pointer;
+            margin-bottom: 4%;
+		}
+		
+        .axis text {
+            font-family: Lato;
+            font-size: 13px;
+		}
+		.tick {
+			font-size: 12
+		}
+		.tick line {
+			stroke: #ccc
+		}
+		
+		.axis path,
+		.axis line {
+			fill: none;
+			stroke: #777;
+			stroke-width: 2;
+			shape-rendering: crispEdges;
+		}			
+        #trend {
+            padding: 0;
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="row">
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="navbar-header  col-xs-10 ">
+                    <a class="navbar-brand" href="/">
+                        <strong style="color: #FFF;">NYC Twitter Moniter</strong>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div id='map'></div>
+    <!--<i id="refresh" class="fa fa-refresh fa-2x" aria-hidden="true" style="position:absolute;"></i>-->
+
+    <div style="position: absolute; right: 0; width: 25%; height: 70%;">
+        <div class="panel panel-default">
+            <div class="panel-heading" style="background-color:rgba(121, 134, 134, 0.2); height: 12%;">
+                <div class="row">
+                    <center>
+                        <div class="btn-group" id="title">
+                            <button class="btn btn-default" id="hash" style="height:100%;" onclick="updateList('hash')"><strong><i class="fa fa-hashtag" aria-hidden="true"> 	</i>Hash</strong></button>
+                            <button class="btn btn-default" id="mention" style="height:100%;" onclick="updateList('mention')"><strong><i class="fa fa-at" aria-hidden="true"></i>Mention</strong></button>
+                        </div>
+                    </center>
+                </div>
+            </div>
+            <div class="panel-body" >
+                <ul class="list-group" id="ranking" style="margin-bottom: 0;" >
+                </ul>
+                <div id="timeLabel" >Past 6hrs</div>
+                <input type="range" min="1" max="24" step="1" value="6" id="pastTimeSelect" oninput="showTimeLabel(this.value)" onchange="refreshPastData()" style="width:100%">
+            </div>
+        </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<svg id="trend" width="376", height="270" >Trend</svg>
+    </div>
+
+    <div class='row'>
+        <div class="alert alert-info" id="tweetsbox"><span>Real-Time Tweets</span></div>
+    </div>
+
+    <script>
+        jQuery(function ($) {
+            //Global variables
+            var $tweetsbox = $('#tweetsbox');
+            var $timeLabel = $('#timeLabel');
+
+            $(document).ready(function () {
+                mapboxgl.accessToken = 'pk.eyJ1Ijoid2Vpc2hpIiwiYSI6ImNpbmc5cHV4bzFnOHJ1Zmx3ZGxpaGU0aGIifQ.L20RZ709ePgurmOeOYPwXg';
+                map = new mapboxgl.Map({
+                    container: 'map'
+                    , style: 'mapbox://styles/mapbox/dark-v8'
+                    , center: [-73.961425, 40.786338]
+                    , zoom: 11.5
+                });
+                //here you try to ask the user position then setView to map
+                map.on('style.load', function () {
+                    //registerLayer("tweets_marker", "lightblue", false, 0.2, 2);
+                    registerLayer("point_marker", "lightblue", false, 0.5, 2);
+                    //registerExtraLayer("text", "white");
+                    //map.setLayoutProperty("text", 'visibility', 'visible');
+                    for (var i = limit - 1; i >= 0; i--) {
+                        var r = 4;
+                        var opacity = 1;
+                        var cluster = false;
+                        if (useStyle2) {
+						    if (i == 0) {r = 14;}
+						    else if (i == 1) { r = 9;}
+						    else if (i == 2) {r = 6;}
+							r = 4;
+                            cluster = false;
+                        }
+
+                        registerLayer("hash_" + i, listColor[i], cluster, opacity, r);
+                        registerLayer("mention_" + i, listColor[i], cluster, opacity, r);
+                        map.setLayoutProperty("mention_" + i, 'visibility', 'none');
+                    }
+                    mapLoaded = true;
+                    refreshPastData();
+                });
+            });
+
+            var refreshId = setInterval(refreshPastData, 60000);
+
+            socket.on('past data', function (data) {
+                procPastData(data);
+                updateList(selectedTab);
+                serveData();
+            });
+
+            function displayMsg(data) {
+                $tweetsbox.html('<span class="msg"><b>' + data.user + ': </b>' + data.text + ' ' + "</span><br/>");
+            }
+
+            socket.on('new tweets', function (data) {
+                if (mapLoaded) {
+                    displayMsg(data);
+                    showPoint(data.point);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
