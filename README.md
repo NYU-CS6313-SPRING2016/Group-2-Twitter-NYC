@@ -15,8 +15,7 @@ NYC Twitter Monitor (short by NTM) was developed to monit real-time tweets twite
 ##Install instructions (if needed)
 ###Requirements 
 The systems has the following dependences:
-1. Install **Mongodb**.
-
+1. Install **Mongodb**
 2. Install **NodeJs**
 
 
