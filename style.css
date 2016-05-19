@@ -1,0 +1,189 @@
+#tweetsbox {
+	position: absolute;
+	top: 50px;
+	background-color: rgba(52, 152, 219, 0.2);
+	color: #FFF;
+	height: 100px;
+	width: 40%;
+	left: 20%;
+}
+
+
+#tweetslist {
+	position: absolute;
+	padding: 0;
+	background-color: rgba(52, 152, 219, 0.2);
+	color: #FFF;
+	overflow-y: scroll;
+	height:200px;
+	width:40%;
+	left: 20%;
+}
+
+#map {
+	position: absolute;
+	top: 50px;
+	bottom: 0;
+	width: 75%;
+}
+
+button.btn-default:focus {
+	border: none;
+	color: #FFF;
+	background-color: #5592aa;
+	outline: 0;
+}
+
+button.btn-default:hover {
+	border: none;
+	color: #FFF;
+	background-color: #5592aa;
+}
+
+button.btn-default {
+	background-color: rgba(52, 152, 219, 0);
+	border: none;
+	color: #5592aa;
+	width: 100px;
+}
+
+#hash:active {
+	border: none;
+	color: #FFF;
+	background-color: #5592aa;
+	outline: 0;
+}
+
+#mention:active {
+	border: none;
+	color: #FFF;
+	background-color: #5592aa;
+	outline: 0;
+}
+
+#refresh {
+	color: #FFF;
+	margin: 20px;
+}
+
+ul {
+	padding-left: 0;
+	margin: 5px;
+}
+
+.navbar-default {
+	background-color: #5592aa;
+	color: #FFF;
+	margin-bottom: 0;
+}
+
+.progress-label {
+	float: left;
+	margin-left:3px;
+	color: black;
+	font-weight: bold;
+}
+
+.progress-num {
+	float: right;
+	color: black;
+	font-weight: bold;
+}
+
+.progress {
+	cursor: pointer;
+	margin-bottom: 4%;
+}
+
+.axis text {
+	font-family: Lato;
+	font-size: 13px;
+}
+
+.tick {
+	font-size: 12
+}
+
+.tick line {
+	stroke: #ccc
+}
+
+.axis path,
+.axis line {
+	fill: none;
+	stroke: #777;
+	stroke-width: 2;
+	shape-rendering: crispEdges;
+}
+
+#trend {
+	padding: 0;
+	margin-top: 0;
+}
+		
+
+/* General styles for all menus */
+.cbp-spmenu {
+	position: absolute;
+	padding: 0;
+	visibility:visible;
+}
+
+
+.cbp-spmenu-horizontal {
+	width: 40%;
+	left: 20%;
+	bottom: 0px;
+	height: 0px;
+	position: absolute;
+	padding: 0;
+	background-color: rgba(52, 152, 219, 0.2);
+	color: #FFF;
+	overflow: auto;
+	visibility:visible;
+}
+
+
+.cbp-spmenu-bottom.cbp-spmenu-open {
+	height:200px;
+	padding: 0;
+	visibility: visible;
+}
+
+/* Transitions */
+
+.cbp-spmenu,
+.cbp-spmenu-push {
+	-webkit-transition: all 0.3s ease;
+	-moz-transition: all 0.3s ease;
+	transition: all 0.3s ease;
+}
+
+
+
+.hide_tweetslist {
+	left: 20%;
+	bottom: 0px;
+	height: 25px;
+	position: absolute;
+	padding: 0;
+	background-color: rgba(52, 152, 219, 0.2);
+	color: #FFF;
+	visibility:visible;
+}
+
+.hide_tweetslist.hide_tweetslist-open {
+	bottom:200px;
+	height: 25px;
+	padding: 0;
+	visibility: visible;
+}
+
+/* Transitions */
+
+.hide_tweetslist,
+.hide_tweetslist-push {
+	-webkit-transition: all 0.3s ease;
+	-moz-transition: all 0.3s ease;
+	transition: all 0.3s ease;
+}
