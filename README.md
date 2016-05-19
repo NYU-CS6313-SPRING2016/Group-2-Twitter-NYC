@@ -1,5 +1,5 @@
 #NYC Tweeter Monitor
-![alt text](https://raw.githubusercontent.com/CristianFelix/infoviz/master/Screen.png "Screenshot")
+![alt text](https://raw.githubusercontent.com/singku/Group-2-Twitter-NYC/master/screenshot.png "Screenshot")
 
 **Authors**: Liang Tang ([github-user-name](https://github.com/singku)), Yuwei Liu ([github-user-name](https://github.com/vivian3472 )) Weishi ([github-user-name](https://github.com/Weishi93)), Sheng Sun ([gitbug-user-name](https://github.com/se7enRune))
 
