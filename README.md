@@ -4,7 +4,7 @@
 **Authors**: Liang Tang ([github-user-name](https://github.com/singku)), Yuwei Liu ([github-user-name](https://github.com/vivian3472 )) Weishi ([github-user-name](https://github.com/Weishi93)), Sheng Sun ([gitbug-user-name](https://github.com/se7enRune))
 
 ##Description
-NYC Twitter Monitor (short by NTM) was developed to monit real-time tweets twited by Tweeter users within NYC. By using the visualization of NTM, clients could see the 10 most popular Hashtags and Mentions, as well as the distribution of related tweets in GeoMap. Other features including hashtags' or mentions' trends in past 24hrs; filtered displaying of distributions; etc. Basically, we monit what topics users cared about, discussed in where and whether a topic is poular or not.
+NYC Twitter Monitor (short by NTM) was developed to monit real-time tweets twited by Tweeter users within NYC. By using the visualization of NTM, clients could see the 10 most popular Hashtags and Mentions, as well as the distribution of related tweets in GeoMap. Other features including hashtags' or mentions' trends in past 24hrs; filtered displaying of distributions; etc. Basically, we monit what topics were talked by people, talked in where and whether a topic is poular or not.
 
 **Video**: http://link-to-video.com
 
