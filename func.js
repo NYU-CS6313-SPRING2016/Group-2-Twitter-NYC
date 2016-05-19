@@ -6,7 +6,7 @@ var mentionRank = []; //descending sorted array ...
 var lastHashData = new Map(); // [key,value] value is an obj include set of coords, and set of trends
 var lastMentionData = new Map();
 //var listColor = ["#b54a4a", "#b4704b", "#b4964b", "#8fba45", "#5bb946", "#4bb470", "#4cafb3", "#4894b7", "#5475ab", "#6353ac"];
-var listColor = ['#8b0000','#ba5211','#e08a3a','#fabc71','#ffeab7','#e8facf','#bae1b6','#8eb9a6','#5f849d','#004499'];
+var listColor = ['#ff7f0e','#2ca02c','#1f77b4','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf'];
 var tweets_temp = []; // Records data for real-time tweets
 var map;
 var animation = [[1, 0.5], [20, 0.8], [30, 0.4], [50, 0]];
@@ -15,13 +15,40 @@ var pastHrs = 6;
 var trendMax = 0;
 var useStyle2 = 0;
 
+function GetRequest() { 
+	var url = location.search; 
+	if (url.indexOf("?") != -1) {  
+		var str = url.substr(1); 
+		strs = str.split("=");  
+		if (strs[1]) {
+			useStyle2 = 1;
+		}
+	}
+}
+
+GetRequest();
+/* 
 var cScale = d3.scale.category10();
 for (var i = 0; i < 10; i++) {
     if (useStyle2) {
         listColor[i] = cScale(i*7);
     }
 }
-
+ */
+ 
+ function msTimeToHms(time) {
+	var date = new Date(time);
+	// Hours part from the timestamp
+	var hours = date.getHours();
+	// Minutes part from the timestamp
+	var minutes = "0" + date.getMinutes();
+	// Seconds part from the timestamp
+	var seconds = "0" + date.getSeconds();
+	// Will display time in 10:30:23 format
+	var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+	return formattedTime;
+}
+			
 function showTimeLabel(time) {
 	document.getElementById("timeLabel").innerHTML = 'Past ' +time+ 'hrs';
 }
@@ -52,14 +79,25 @@ function updateList(tag) {
 				
 	$('#ranking').empty();
 	var list = $('<ul/>').appendTo('#ranking');
-	var base = arg[0][1] * 1.3;
-	for (var i = 0;i < limit; i++) {
+	var base = arg.length != 0 ?arg[0][1] * 1.3 :0;
+	for (var i = 0; i < limit && i < arg.length; i++) {
 		// New <li> elements are created here and added to the <ul> element.
 		list.append('<div class="row" style="margin:0;"><div class="progress" onclick="filtMapData(\''+tag+'\','+i+')" ><div class="progress-bar progress-bar-warning " role="progressbar" style="width:'+arg[i][1]/base*100+'%; background-color:'+listColor[i]+';">'+
 		'<div class="progress-label">'+arg[i][0]+'</div></div>'+
 		'<div class="progress-num">'+arg[i][1]+'</div>'+
 		'</div></div>');
 	};
+	
+	var text ="";
+	if (arg.length != 0) {
+		var target = tag == "hash" ?lastHashData.get(arg[0][0]) :lastMentionData.get(arg[0][0]);
+		for (var i = 0; i < target.locs.length; i++) {
+			text += "<b>"+msTimeToHms(target.locs[i].time)+" "+target.locs[i].user+": </b>" +target.locs[i].text +"<br><br>";
+		}
+	}
+	$('#cbp-spmenu-s4').html(text);
+	$('#cbp-spmenu-s4').scrollTop($('#cbp-spmenu-s4')[0].scrollHeight);
+	
 	drawTrends(-1);
 }
 
@@ -70,6 +108,24 @@ function filtMapData(tag, idx) {
 		map.setLayoutProperty("mention_"+i, 'visibility', "none");
 	}
 	map.setLayoutProperty(layer,'visibility', "visible");
+	
+	var target = (tag == "hash") ?lastHashData.get(hashRank[idx][0]) :lastMentionData.get(mentionRank[idx][0]);
+	var text ="";
+	for (var i = 0; i < target.locs.length; i++) {
+		text += "<b>"+msTimeToHms(target.locs[i].time)+" "+target.locs[i].user+": </b>" +target.locs[i].text +"<br><br>";
+	}
+	
+	$('#cbp-spmenu-s4').html(text);
+	$('#cbp-spmenu-s4').scrollTop($('#cbp-spmenu-s4')[0].scrollHeight);
+	
+/* 	var menuBottom = document.getElementById( 'cbp-spmenu-s4' );
+	var hide_button = document.getElementById('hide_button');
+	if (!classie.has(menuBottom, 'cbp-spmenu-open')) {
+		classie.toggle( menuBottom, 'cbp-spmenu-open' );
+		classie.toggle( hide_button, 'hide_tweetslist-open');
+	}	
+	$('#hide_button').html("<button style=\"background-color:rgba(52, 152, 219, 0.2)\"></button>"); */
+
 	drawTrends(idx);
 }
 
@@ -81,9 +137,7 @@ function procPastData(data) {
 
 	var trendGridCnt = pastHrs*6;
 	var startTime = Date.now() - pastHrs * 3600 * 1000;
-	tweets_temp = [];
 	for (var i = 0; i < data.length; i++) {
-		tweets_temp.push(data[i]);
 		var property = data[i].properties.keyword;
 		var itsTime = data[i].properties.time;
 		var idx = parseInt((itsTime - startTime) / (600*1000));
@@ -105,7 +159,12 @@ function procPastData(data) {
 			if (lastMentionData.has(property)) {
 				locs = lastMentionData.get(property).locs;
 				trends = lastMentionData.get(property).trends;
-				locs.push(data[i].geometry.coordinates);
+		        locs.push({
+                    "coord":data[i].geometry.coordinates,
+                    "user": data[i].properties.user,      
+                    "time":data[i].properties.time,
+                    "text": data[i].properties.text
+                });
 				trends[idx].cnt++;
 			} else {
 				for (var k = 0; k < trendGridCnt; k++) {
@@ -118,7 +177,13 @@ function procPastData(data) {
 				trends[idx].cnt++;
 				if (trends[idx].cnt > trendMax) trendMax = trends[idx].cnt;
 				
-				locs.push(data[i].geometry.coordinates);
+                locs.push({
+                    "coord":data[i].geometry.coordinates,
+                    "user": data[i].properties.user,      
+                    "time":data[i].properties.time,
+                    "text": data[i].properties.text
+                });
+
 				lastMentionData.set(property, {"locs":locs, "trends":trends});
 			}
 			
@@ -135,7 +200,13 @@ function procPastData(data) {
 			if (lastHashData.has(property)) {
 				locs = lastHashData.get(property).locs;
 				trends = lastHashData.get(property).trends;
-				locs.push(data[i].geometry.coordinates);
+                locs.push({
+                    "coord":data[i].geometry.coordinates,
+                    "user": data[i].properties.user,      
+                    "time":data[i].properties.time,
+                    "text": data[i].properties.text
+                });
+
 				trends[idx].cnt++;
 			} else {
 				for (var k = 0; k < trendGridCnt; k++) {
@@ -146,7 +217,13 @@ function procPastData(data) {
 				}
 				trends[idx].cnt++;
 				if (trends[idx].cnt > trendMax) trendMax = trends[idx].cnt;
-				locs.push(data[i].geometry.coordinates);
+                locs.push({
+                    "coord":data[i].geometry.coordinates,
+                    "user": data[i].properties.user,      
+                    "time":data[i].properties.time,
+                    "text": data[i].properties.text
+                });
+
 				lastHashData.set(property, {"locs":locs, "trends":trends});
 			}
 		}
@@ -157,14 +234,14 @@ function procPastData(data) {
 		hashRank.push([key, hashRankNsort[key]]);
 	}
 	hashRank.sort(function (a, b) {
-		return b[1] - a[1]
+		return b[1] - a[1];
 	});
 
 	for (var key in mentionRankNsort) {
 		mentionRank.push([key, mentionRankNsort[key]]);
 	}
 	mentionRank.sort(function (a, b) {
-		return b[1] - a[1]
+		return b[1] - a[1];
 	});
 }
 
@@ -190,21 +267,17 @@ function ChangeLayerData(layer, tweetPoints) {
 }
 
 function serveData() {
-    var TopHash;
-	for (var i = 0; i < limit; i++) {
+	for (var i = 0; i < limit && i < hashRank.length; i++) {
 		var layer = "hash_" + i;
 		var key = hashRank[i][0];
-        TopHash += keyLocSetToGeoArray(key, lastHashData.get(key).locs);
 		ChangeLayerLastData(layer, keyLocSetToGeoArray(key, lastHashData.get(key).locs));
 	}
-    //ChangeLayerLastData("text", TopHash);
-	for (var i = 0; i < limit; i++) {
+	for (var i = 0; i < limit && i < mentionRank.length; i++) {
 		var layer = "mention_" + i;
 		var key = mentionRank[i][0];
 		ChangeLayerLastData(layer, keyLocSetToGeoArray(key, lastMentionData.get(key).locs));
 	}
 	//ChangeLayerData("tweets_marker", tweets_temp);
-    drawTrends(-1);
 }
 
 function genGeoTweet(tweet) {
@@ -215,6 +288,8 @@ function genGeoTweet(tweet) {
 			"coordinates": tweet.coord
 		}, 
 		"properties": {
+            "user": tweet.user,
+			"time": tweet.time,
 			"text": tweet.text
 		}
 	}
@@ -232,8 +307,10 @@ function keyLocSetToGeoArray(key, locations) {
 	var geoLocs = [];
 	for (var i = 0; i < locations.length; i++) {
 		var dummyTweet = {
-			"coord": locations[i],
-			"text": key
+            "coord": locations[i].coord,
+			"text": locations[i].text,
+            "user": locations[i].user,
+            "time": locations[i].time
 		}
 		geoLocs.push(genGeoTweet(dummyTweet));
 	}
@@ -292,7 +369,6 @@ function registerExtraLayer(name, color) {
 }
 
 function showPoint(tweet) {
-	tweets_temp.push(tweet);
 	//ChangeLayerData("tweets_marker", tweets_temp);
 	ChangeLayerData("point_marker", [tweet]);
 	animatePoint("point_marker", Date.now());
@@ -304,14 +380,14 @@ function drawTrends(extraId) {
 	if (selectedTab == "hash") {
 		if (extraId != -1) {
 			jsonData.push({
-				"key": hashRank[extraId],
+				"key": hashRank[extraId][0],
 				"trends": lastHashData.get(hashRank[extraId][0]).trends	
 			});
 			yExtend.push(lastHashData.get(hashRank[extraId][0]).trends);	
 		} else {
-			for (var i = 0; i < 3; i++) {
+			for (var i = 0; i < 3 && i < hashRank.length; i++) {
 				jsonData.push({
-					"key": hashRank[i],
+					"key": hashRank[i][0],
 					"trends": lastHashData.get(hashRank[i][0]).trends
 				});
 				yExtend.push(lastHashData.get(hashRank[i][0]).trends);
@@ -320,16 +396,16 @@ function drawTrends(extraId) {
 
 	} else {
 		if (extraId == -1) {
-			for (var i = 0; i < 3; i++) {
+			for (var i = 0; i < 3 && i < mentionRank.length; i++) {
 				jsonData.push({
-					"key": mentionRank[i],
+					"key": mentionRank[i][0],
 					"trends": lastMentionData.get(mentionRank[i][0]).trends	
 				});
 				yExtend.push(lastMentionData.get(mentionRank[i][0]).trends);
 			}			
 		} else {
 			jsonData.push({
-				"key": mentionRank[extraId],
+				"key": mentionRank[extraId][0],
 				"trends": lastMentionData.get(mentionRank[extraId][0]).trends	
 			});
 			yExtend.push(lastMentionData.get(mentionRank[extraId][0]).trends);			
@@ -340,24 +416,25 @@ function drawTrends(extraId) {
 	d3.selectAll("#axis").remove();
 	d3.selectAll("#xlabel").remove();
 	
-	var vis = d3.select("#trend");
+ 	var vis = d3.select("#trend");
+    var WIDTH = parseInt(vis.style('width')),
+	HEIGHT = parseInt(vis.style('height'));
 	
-	WIDTH = 376,
-	HEIGHT = 270,
-	MARGINS = {
-		top: 50,
-		right: 40,
-		bottom: 50,
-		left: 30
-	},
-	xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([pastHrs*6,0]),
-	yScale = d3.scale.linear().range([HEIGHT-MARGINS.top, MARGINS.bottom]).domain(d3.extent(d3.merge(yExtend), function(d) {return d.cnt;})),
+	var MARGINS = {
+		top: 50/287*HEIGHT,
+		right: 40/444*WIDTH,
+		bottom: 50/287*HEIGHT,
+		left: 30/444*WIDTH
+	};
+	var xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([pastHrs*6,0]);
+	var range = d3.extent(d3.merge(yExtend), function(d) {return d.cnt;});
+	var yScale = d3.scale.linear().range([HEIGHT-MARGINS.top, MARGINS.bottom]).domain([range[0],range[1]*1.2]);
 	
-	xAxis = d3.svg.axis()
+	var xAxis = d3.svg.axis()
 	.tickFormat(d3.format("d"))
-	.scale(xScale),
+	.scale(xScale);
 	
-	yAxis = d3.svg.axis()
+	var yAxis = d3.svg.axis()
 	.scale(yScale)
 	.tickFormat(d3.format("d"))
     .ticks(7)
@@ -391,25 +468,32 @@ function drawTrends(extraId) {
 		.attr('stroke', extraId==-1?listColor[i]: listColor[extraId])
 		.attr('stroke-width', 2)
 		.attr('fill', 'none');
+		
+		vis.append("text")
+		.attr("id", "xlabel")
+		.attr("text-anchor", "left")
+		.text(jsonData[i].key)
+		.style("fill", extraId==-1?listColor[i]: listColor[extraId])
+		.attr("transform", "translate("+ (MARGINS.left) +","+(MARGINS.top+15*(i+1))+")");
 	}
 	
 	vis.append("text")
 		.attr("id", "xlabel")
 		.attr("text-anchor", "middle")  
-		.attr("transform", "translate("+ (WIDTH-5) +","+(HEIGHT/2-30)+")rotate(-90)")  
+		.attr("transform", "translate("+ (WIDTH-4) +","+(HEIGHT/2-30/260*HEIGHT)+")rotate(-90)")  
 		.text("Freqency");
 
 	vis.append("text")
 		.attr("id", "xlabel")
 		.attr("text-anchor", "middle")  
-		.attr("transform", "translate("+ (WIDTH/2) +","+(HEIGHT-15)+")")
+		.attr("transform", "translate("+ (WIDTH/2) +","+(HEIGHT)+")")
 		.text("Past Time (unit: 10min)");
 
 	vis.append("text")
 		.attr("id", "xlabel")
 		.attr("text-anchor", "middle")  
-		.attr("transform", "translate("+ (WIDTH/4) +","+(MARGINS.top+30)+")")
-		.text("Key Trends")
-        .style("font-size", "18px")
+		.attr("transform", "translate("+ (WIDTH/2) +","+(MARGINS.top-15/260*HEIGHT)+")")
+		.text("Keys' Trend")
+        .style("font-size", "14px")
         .style("stroke", "red");
 }
