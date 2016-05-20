@@ -6,7 +6,7 @@ var express = require('express'),
     twitter = require('twitter'),
     turf = require('turf'),
     stemmer = require('porter-stemmer').stemmer;
-
+var port = 80;
 var cacheDateTime = 86400*1000;
 var clearFrequency = 60*1000;
 
@@ -68,10 +68,7 @@ function refreshCacheData() {
 		for (var key in target) {
 			for (var time in target[key]) {
 				if (now > time && now -  time > cacheDateTime) {
-					//console.log("clear_time: " + time);
-					//console.log(target[key]);
 					delete target[key][time];
-					//console.log(target[key]);
 				}
 			}
 			var empty = true;
@@ -82,13 +79,15 @@ function refreshCacheData() {
 				}
 			}
 			if (empty) {
-				//console.log("clear_key: " + key);
 				delete target[key];
 			}
 		}
 	}
 	clearOutdateData(pastDataCache["hashtag"]);	
 	clearOutdateData(pastDataCache["mention"]);
+
+	gc();
+    console.log(process.memoryUsage());
 }
 
 function newTweet2Cache(obj, type) {
@@ -192,7 +191,6 @@ function processRealtimeTweet(tweet) {
 		}
 		coord = tweet.coordinates.coordinates;
 	}
-	//console.log(coord);
 	var valid = locationBound.features.some(function (f) {
 		if (turf.inside(point, f)) {
 			return true;
@@ -299,6 +297,7 @@ function getPastDataFromMongoDB(pastHrs, callback) {
 				keyTarget[docs[i].time] = [];
 			}
 			keyTarget[docs[i].time].push(tmp);
+
 		}
 		console.log("Finish Loading history data to cache...");
 		callback();
@@ -313,9 +312,7 @@ function sendPastData(socket, pastHrs) {
 			for (var time in target[key]) {
 				//unlikely now < time
 				if (now <= time || (now > time && now - time < pastHrs * 3600 * 1000)) {
-					//console.log(target[key][time]);
 					data = data.concat(target[key][time]);
-                    //console.log(data.length);
 				}
 			}
 		}
@@ -340,11 +337,13 @@ function systemInit() {
 	
 	function step2() {
 		//load past 24hrs data as cache to speed up client reqs
-		console.log("Load history data...")
-		loadCacheData(24, step3);
+		console.log("Load history data...");
+        console.log(process.memoryUsage());
+        loadCacheData(24, step3);
 	}
 
 	function step3() {
+        console.log(process.memoryUsage());
 		//set timer to polling cache data delete outdated cache;
 		var refreshId = setInterval(refreshCacheData, clearFrequency);
 		
@@ -352,8 +351,8 @@ function systemInit() {
 		locationBound = readJson('new-york-city-boroughs.geojson');
 		
 		//start server listening
-		console.log("Listen on port: " + 80);
-		server.listen(80);
+		console.log("Listen on port: " + port);
+		server.listen(port);
 		
 		step4();
 	}
@@ -365,6 +364,7 @@ function systemInit() {
 			});
 
 			stream.on('error', function(error) {
+				console.log(error);
 				throw error;
 			});
 		});
@@ -385,9 +385,7 @@ function systemInit() {
 
 		io.sockets.on('connection', function(socket) {
 			//socket io cmd format
-			//console.log("new conn");
 			socket.on('past data', function(pastHrs) {
-				//console.log("past data");
 				sendPastData(socket, pastHrs);
 			});
 		});
@@ -396,3 +394,22 @@ function systemInit() {
 
 systemInit();
 
+process.on('exit', function (code) {
+    console.log('About to exit with code:', code);
+    console.trace("Here");
+});  
+
+process.on('SIGHUP', function () {
+    console.log('Got SIGHUP signal.');
+    process.exit(0);
+});
+
+process.on('SIGTERM', function () {
+    console.log('Got SIGTERM signal.');
+    process.exit(0);
+});
+
+process.on('SIGINT', function () {
+    console.log('Got SIGINT signal.');
+    process.exit(0);
+});
