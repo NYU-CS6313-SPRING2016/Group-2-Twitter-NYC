@@ -8,7 +8,7 @@ NYC Twitter Monitor (short by NTM) was developed to monit real-time tweets twite
 
 **Video**: http://link-to-video.com
 
-**Demo**: http://link-to-demo.com
+**Demo**: http://www.asingku.com
 
 **Document**: http://link-to-finalreport.com ...
 
