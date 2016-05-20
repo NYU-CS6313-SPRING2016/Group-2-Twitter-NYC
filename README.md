@@ -26,5 +26,9 @@ The systems has the following dependences:
 4. Open Browser and enter http://localhost
 5. The Homepage is hosted at http://www.asingku.com
 
+###Note
+The backend program will cache data of past 24hrs. Since js object occupy a lot of memory, 24hrs data may cause
+memeory usage of this program increasing and killed by os sometime, becareful, you could either modify this cache strategy or use large memory
+
 
 
