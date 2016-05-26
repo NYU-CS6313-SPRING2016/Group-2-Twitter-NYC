@@ -13,7 +13,7 @@ var animation = [[1, 0.5], [20, 0.8], [30, 0.4], [50, 0]];
 var selectedTab = "hash";
 var pastHrs = 6;
 var trendMax = 0;
-var dotRadius = 4;
+var dotRadius = 5;
 
 function GetRequest() { 
 	var url = location.search; 
@@ -92,11 +92,11 @@ function updateList(tag) {
 	if (arg.length != 0) {
 		var target = tag == "hash" ?lastHashData.get(arg[0][0]) :lastMentionData.get(arg[0][0]);
 		for (var i = 0; i < target.locs.length; i++) {
-			text += "<font color=black><b>"+msTimeToHms(target.locs[i].time)+" "+target.locs[i].user+": </b>" +target.locs[i].text +"</font><br><br>";
+			text += "<b>"+msTimeToHms(target.locs[i].time)+" "+target.locs[i].user+": </b>" +target.locs[i].text +"<br><br>";
 		}
 	}
-	$('#tweetsList').html(text);
-	$('#tweetsList').scrollTop($('#tweetsList')[0].scrollHeight);
+	$('#cbp-spmenu-s4').html(text);
+	$('#cbp-spmenu-s4').scrollTop($('#cbp-spmenu-s4')[0].scrollHeight);
 	
 	drawTrends(-1);
 }
@@ -112,12 +112,19 @@ function filtMapData(tag, idx) {
 	var target = (tag == "hash") ?lastHashData.get(hashRank[idx][0]) :lastMentionData.get(mentionRank[idx][0]);
 	var text ="";
 	for (var i = 0; i < target.locs.length; i++) {
-		text += "<font color=black><b>"+msTimeToHms(target.locs[i].time)+" "+target.locs[i].user+": </b>" +target.locs[i].text +"</font><br><br>";
+		text += "<b>"+msTimeToHms(target.locs[i].time)+" "+target.locs[i].user+": </b>" +target.locs[i].text +"<br><br>";
 	}
 	
-	$('#tweetsList').html(text);
-	$('#tweetsList').scrollTop($('#tweetsList')[0].scrollHeight);
+	$('#cbp-spmenu-s4').html(text);
+	$('#cbp-spmenu-s4').scrollTop($('#cbp-spmenu-s4')[0].scrollHeight);
 	
+/* 	var menuBottom = document.getElementById( 'cbp-spmenu-s4' );
+	var hide_button = document.getElementById('hide_button');
+	if (!classie.has(menuBottom, 'cbp-spmenu-open')) {
+		classie.toggle( menuBottom, 'cbp-spmenu-open' );
+		classie.toggle( hide_button, 'hide_tweetslist-open');
+	}	
+	$('#hide_button').html("<button style=\"background-color:rgba(52, 152, 219, 0.2)\"></button>"); */
 
 	drawTrends(idx);
 }
@@ -412,15 +419,14 @@ function drawTrends(extraId) {
  	var vis = d3.select("#trend");
     var WIDTH = parseInt(vis.style('width')),
 	HEIGHT = parseInt(vis.style('height'));
-	console.log(WIDTH);
-	console.log(HEIGHT);
+	
 	var MARGINS = {
 		top: 50/287*HEIGHT,
 		right: 40/444*WIDTH,
 		bottom: 50/287*HEIGHT,
 		left: 30/444*WIDTH
 	};
-	var xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right-5]).domain([pastHrs*6,0]);
+	var xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([pastHrs*6,0]);
 	var range = d3.extent(d3.merge(yExtend), function(d) {return d.cnt;});
 	var yScale = d3.scale.linear().range([HEIGHT-MARGINS.top, MARGINS.bottom]).domain([range[0],range[1]*1.2]);
 	
@@ -444,7 +450,7 @@ function drawTrends(extraId) {
 	vis.append("svg:g")
 		.attr("class", "y axis")
 		.attr("id", "axis")
-		.attr("transform", "translate(" + (WIDTH-MARGINS.right-5) + ",0)")
+		.attr("transform", "translate(" + (WIDTH-MARGINS.right) + ",0)")
 		.call(yAxis);
 		
 	var lineGen = d3.svg.line()
@@ -474,13 +480,13 @@ function drawTrends(extraId) {
 	vis.append("text")
 		.attr("id", "xlabel")
 		.attr("text-anchor", "middle")  
-		.attr("transform", "translate("+ (WIDTH-3) +","+(HEIGHT/2-30/260*HEIGHT)+")rotate(-90)")  
+		.attr("transform", "translate("+ (WIDTH-4) +","+(HEIGHT/2-30/260*HEIGHT)+")rotate(-90)")  
 		.text("Freqency");
 
 	vis.append("text")
 		.attr("id", "xlabel")
 		.attr("text-anchor", "middle")  
-		.attr("transform", "translate("+ (WIDTH/2) +","+(HEIGHT-5)+")")
+		.attr("transform", "translate("+ (WIDTH/2) +","+(HEIGHT)+")")
 		.text("Past Time (unit: 10min)");
 
 	vis.append("text")

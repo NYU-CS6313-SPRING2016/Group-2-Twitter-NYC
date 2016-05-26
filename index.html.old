@@ -25,7 +25,7 @@
 	<nav class="navbar navbar-default">
 		<div class="container">
 			<div class="navbar-header  col-xs-10 ">
-				<a class="navbar-brand" href="/?dotRadius=3">
+				<a class="navbar-brand" href="/?dotRadius=4">
 					<strong style="color: #FFF;">NYC Twitter Moniter</strong>
 				</a>
 			</div>
@@ -33,34 +33,37 @@
 	</nav>
 	
     <div id='map'></div>
-    <div style="position: absolute; right: 0; width: 40%; height: 80%">
-            <div class="panel panel-default col-lg-7" style="padding-left:0; padding-right:0; width:55%;">
-                <div class="panel-heading" style="background-color:rgba(121, 134, 134, 0.2); height: 12%;">
-                    <div class="row">
-                        <center>
-                            <div class="btn-group" id="title">
-                                <button class="btn btn-default" id="hash" style="height:100%;" onclick="updateList('hash')"><strong><i class="fa fa-hashtag" aria-hidden="true"></i>Hash</strong></button>
-                                <button class="btn btn-default" id="mention" style="height:100%;" onclick="updateList('mention')"><strong><i class="fa fa-at" aria-hidden="true"></i>Mention</strong></button>
-                            </div>
-                        </center>
-                    </div>
-                </div>
-                <div class="panel-body">
-                    <ul class="list-group" id="ranking" style="margin-bottom: 0;">
-                    </ul>
-                    <div id="timeLabel">Past 6hrs</div>
-                    <input type="range" min="1" max="24" step="1" value="6" id="pastTimeSelect" oninput="showTimeLabel(this.value)" onchange="refreshPastData()" style="width:100%">
-                 </div>
-				 <svg id="trend" style="width:100%; height:35%;"></svg>
-             </div>
 
-            <div class="panel panel-danger col-lg-5" style="padding-left:0; padding-right:0; width:45%;">
-                <div class="panel-heading" style=" height: 12%; padding-top:40"><center><strong>Related Tweets List</strong></center></div>
-				<div id="tweetsList"></div>
-            </div>
-     </div>
+    <div style="position: absolute; right: 0; width: 25%;">
+		<div class="panel panel-default col-lg-7" style="padding-left:0; padding-right:0; width:100%; height:80%">
+			<div class="panel-heading" style="background-color:rgba(121, 134, 134, 0.2); height: 12%;">
+				<center>
+					<div class="btn-group" id="title">
+						<button class="btn btn-default" id="hash" style="height:100%;" onclick="updateList('hash')">
+							<strong><i class="fa fa-hashtag" aria-hidden="true"></i>Hash</strong>
+						</button>
+						<button class="btn btn-default" id="mention" style="height:100%;" onclick="updateList('mention')">
+							<strong><i class="fa fa-at" aria-hidden="true"></i>Mention</strong>
+						</button>
+					</div>
+				</center>
+			</div>
+			
+			<div class="panel-body">
+				<ul class="list-group" id="ranking" style="margin-bottom: 0;"></ul>
+				<div id="timeLabel">Past 6hrs</div>
+				<input type="range" min="1" max="24" step="1" value="6" id="pastTimeSelect" 
+				oninput="showTimeLabel(this.value)" onchange="refreshPastData()" style="width:100%">
+			</div>
+		</div>
+		<svg id="trend" style="width:100%; height:25%"></svg>
+    </div>
 	
     <div class="alert alert-info" id="tweetsbox"><span>Real-Time Tweets</span></div>
+	<div class="alert alert-info hide_tweetslist" id="hide_button" >
+		<button style="background-color:rgba(52, 152, 219, 0.2)">RelatedTweets</button>
+	</div>
+	<div class="alert alert-info cbp-spmenu cbp-spmenu-horizontal cbp-spmenu-bottom" id="cbp-spmenu-s4"></div>
 	
     <script>
         jQuery(function ($) {
@@ -73,7 +76,7 @@
                 map = new mapboxgl.Map({
                     container: 'map'
                     , style: 'mapbox://styles/mapbox/dark-v8'
-                    , center: [-73.921425, 40.746338]
+                    , center: [-73.921425, 40.706338]
                     , zoom: 10.6
                 });
                 //here you try to ask the user position then setView to map
@@ -143,6 +146,15 @@
                     showPoint(data.point);
                 }
             });
+			
+
+			var hide_button = document.getElementById('hide_button');
+			hide_button.onclick = function() {
+				var menuBottom = document.getElementById( 'cbp-spmenu-s4' );
+				//$('#hide_button').html("");
+				classie.toggle( menuBottom, 'cbp-spmenu-open' );
+				classie.toggle( hide_button, 'hide_tweetslist-open');
+			}
 
         });
     </script>
